@@ -1,6 +1,6 @@
 {
     "name": "MCP SRG Mapper",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "manifest_version": 2,
     "description": "Applies MCP mappings to SRG named code snippets on github repos and pastebins.",
     "homepage_url": "https://github.com/bspkrs/MinecraftForge-Patch-Mapper",
@@ -14,18 +14,24 @@
     "default_locale": "en",
     "permissions": [
         "storage",
-        "https://export.mcpbot.bspk.rs/*"
+        "http://files.minecraftforge.net/maven/de/oceanlabs/mcp/*"
     ],
     "content_scripts": [
         {
             "matches": [
                 "https://github.com/*/MinecraftForge/*",
-                "https://github.com/*/FML/*"
+                "https://github.com/*/FML/*",
+                "https://pastebin.com/*",
+                "http://pastebin.com/*"
             ],
             "js": [
-                "src/inject/inject.js",
-                "js/jszip/jszip.js"
+                "src/inject.js"
             ]
         }
-    ]
+    ],
+    "background": {
+        "scripts": ["src/background.js",
+            "js/jszip.js"],
+        "persistent": false
+    }
 }
