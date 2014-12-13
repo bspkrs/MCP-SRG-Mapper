@@ -1,9 +1,9 @@
 {
     "name": "MCP SRG Mapper",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "manifest_version": 2,
     "description": "Applies MCP mappings to SRG named code snippets on github repos and pastebins.",
-    "homepage_url": "https://github.com/bspkrs/MinecraftForge-Patch-Mapper",
+    "homepage_url": "https://github.com/bspkrs/MCP-SRG-Mapper",
     "icons": {
         "16": "icons/icon16.png",
         "24": "icons/icon24.png",
@@ -14,6 +14,7 @@
     "default_locale": "en",
     "permissions": [
         "storage",
+        "unlimitedStorage",
         "http://files.minecraftforge.net/maven/de/oceanlabs/mcp/*"
     ],
     "content_scripts": [
@@ -24,14 +25,21 @@
                 "https://pastebin.com/*",
                 "http://pastebin.com/*"
             ],
+            "css": [
+                "css/toastr.min.css"
+            ],
             "js": [
+                "js/jquery-2.1.1.min.js",
+                "js/toastr.min.js",
                 "src/inject.js"
             ]
         }
     ],
     "background": {
-        "scripts": ["src/background.js",
-            "js/jszip.js"],
+        "scripts": [
+            "js/jszip.min.js",
+            "src/background.js"
+        ],
         "persistent": false
     }
 }

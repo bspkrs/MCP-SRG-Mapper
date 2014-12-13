@@ -60,8 +60,16 @@ function fetchCsvZip(versionInput, sender, callback)
     var xhr = new XMLHttpRequest();
     var url = getZipUrl(versionInput);
     xhr.responseType = "arraybuffer";
-    xhr.onload = function() { onZipFetch(versionInput, xhr.response, callback); };
-    xhr.onerror = function() { error('Unable to retrieve CSV zip file! Status ' + xhr.status + ' returned from ' + url); callback(); };
+    xhr.onreadystatechange = function(data)
+    {
+        if (xhr.readyState == 4)
+        {
+            if (xhr.status == 200)
+                onZipFetch(versionInput, xhr.response, callback);
+            else
+                callback({error: 'Unable to retrieve CSV zip file! Status ' + xhr.status + ' returned from ' + url});
+        }
+    };
 
     log(url);
     xhr.open('GET', url, true);
@@ -76,33 +84,26 @@ function onZipFetch(mappingKey, data, callback)
 
     var mappings = {};
 
-    var methods = zip.file('methods.csv').asText().split('\n').slice(1);
-    mappings['methods'] = {};
-    methods.forEach(function (line, i)
+    zip.file('methods.csv').asText().split('\n').slice(1).forEach(function (line, i)
     {
         var splitted = line.split(',');
-        mappings['methods'][splitted[0]] = splitted[1];
+        mappings[splitted[0]] = splitted[1];
     });
 
-    var fields = zip.file('fields.csv').asText().split('\n').slice(1);
-    mappings['fields'] = {};
-    fields.forEach(function (line, i)
+    zip.file('fields.csv').asText().split('\n').slice(1).forEach(function (line, i)
     {
-        splitted = line.split(',');
-        mappings['fields'][splitted[0]] = splitted[1];
+        var splitted = line.split(',');
+        mappings[splitted[0]] = splitted[1];
     });
 
-    var params = zip.file('params.csv').asText().split('\n').slice(1);
-    mappings['params'] = {};
-    params.forEach(function (line, i)
+    zip.file('params.csv').asText().split('\n').slice(1).forEach(function (line, i)
     {
-        splitted = line.split(',');
-        mappings['params'][splitted[0]] = splitted[1];
+        var splitted = line.split(',');
+        mappings[splitted[0]] = splitted[1];
     });
 
     var obj = {};
     obj[mappingKey] = mappings;
-
     chrome.storage.local.set(obj);
 
     chrome.storage.sync.get('versions',
@@ -127,5 +128,5 @@ function onZipFetch(mappingKey, data, callback)
             chrome.storage.sync.set({'versions': savedVersions});
         });
 
-    callback(mappings);
+    callback(mappings, null);
 }
