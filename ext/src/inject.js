@@ -131,16 +131,20 @@ function updateInputList(list, callback)
     chrome.storage.sync.get('versions',
         function(items)
         {
-            if (chrome.runtime.lastError != null) {
+            if (chrome.runtime.lastError)
+            {
                 error(chrome.runtime.lastError.message);
                 savedVersions = [];
             }
             else
             {
-                if (items['versions'] != undefined)
+                if (items['versions'])
                     savedVersions = items['versions'];
                 else
                     savedVersions = [];
+
+                while (list.lastChild)
+                    list.removeChild(list.lastChild);
 
                 savedVersions.reverse().forEach(function (version, i)
                 {
@@ -168,7 +172,7 @@ function addControls()
     input.setAttribute('class', 'input-mini');
     input.setAttribute('style', 'width: 170px');
     input.setAttribute('id', 'mcpsrgmapper_mapping_version');
-    input.setAttribute('list', 'mapping_versions');
+    input.setAttribute('list', 'mcpsrgmapper_mapping_versions');
     input.setAttribute('placeholder', '1.8:snapshot_20141208');
     input.addEventListener('paste', validateVersion, true);
     input.addEventListener('click', validateVersion, true);

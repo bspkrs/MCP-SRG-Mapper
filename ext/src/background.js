@@ -114,7 +114,7 @@ function onZipFetch(mappingKey, data, callback)
                 savedVersions = [];
             else
             {
-                if (items['versions'] != undefined)
+                if (items['versions'])
                     savedVersions = items['versions'];
                 else
                     savedVersions = [];
@@ -125,8 +125,6 @@ function onZipFetch(mappingKey, data, callback)
                 savedVersions.splice(i, 1);
 
             savedVersions.push(mappingKey);
-            chrome.storage.sync.set({'versions': savedVersions});
+            chrome.storage.sync.set({'versions': savedVersions}, function() { callback(mappings); });
         });
-
-    callback(mappings, null);
 }
