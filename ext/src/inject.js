@@ -115,7 +115,7 @@ function reloadPage()
         if ($.support.pjax)
         {
             $.pjax.reload('#js-repo-pjax-container', {});
-            toastr.success('The page has been reset to its original state.');
+            toastr.info('The page has been reset to its original state.');
         }
 }
 
