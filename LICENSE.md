@@ -25,3 +25,5 @@ The usage of JSZip is covered by the MIT license. https://github.com/Stuk/jszip
 The usage of toastr is covered by the MIT license. https://github.com/CodeSeven/toastr
 
 The usage of jQuery is covered by the MIT license. https://jquery.org
+
+The usage of jquery-pjax is covered by the MIT license. https://github.com/defunkt/jquery-pjax
