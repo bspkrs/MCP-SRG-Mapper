@@ -1,0 +1,6 @@
+0.1.2 - 12/15/2014
+- fixed drop-down list of previously entered values not being shown
+- added a reset button for github to revert back to SRG names
+
+0.1.1 - 12/13/2014 
+- initial release
