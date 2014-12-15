@@ -23,11 +23,13 @@
 toastr.options.closeButton = true;
 toastr.options.showMethod = 'slideDown';
 toastr.options.hideMethod = 'slideUp';
+toastr.options.preventDuplicates = true;
 
 //var DEBUG = false;
 
 var savedVersions = [];
 var controlsAdded = false;
+var intervalId = 0;
 var pollCount = 0;
 var pollLimit = 20;
 
@@ -107,6 +109,16 @@ function buttonClicked()
     }
 }
 
+function reloadPage()
+{
+    if (window.location.hostname === 'github.com')
+        if ($.support.pjax)
+        {
+            $.pjax.reload('#js-repo-pjax-container', {});
+            toastr.success('The page has been reset to its original state.');
+        }
+}
+
 function getCachedMappings(mappingKey, callback)
 {
     chrome.storage.local.get(mappingKey, function(items){ callback(items[mappingKey]); });
@@ -170,7 +182,7 @@ function addControls()
     var input = document.createElement('input');
     input.setAttribute('type', 'text');
     input.setAttribute('class', 'input-mini');
-    input.setAttribute('style', 'width: 170px');
+    //input.setAttribute('style', 'width: 170px');
     input.setAttribute('id', 'mcpsrgmapper_mapping_version');
     input.setAttribute('list', 'mcpsrgmapper_mapping_versions');
     input.setAttribute('placeholder', '1.8:snapshot_20141208');
@@ -204,6 +216,7 @@ function addControls()
     container.setAttribute('id', 'mcpsrgmapper_input_controls');
     container.appendChild(input);
     container.appendChild(button);
+    addResetButton(container);
     container.appendChild(list);
     insertControlsContainer(target, container);
 
@@ -216,6 +229,20 @@ function removeControls()
     if (controls)
         controls.parentNode.removeChild(controls);
     controlsAdded = false;
+}
+
+function addResetButton(container)
+{
+    if (window.location.hostname === 'github.com')
+    {
+        var button = document.createElement('input');
+        button.setAttribute('type', 'button');
+        button.setAttribute('id', 'mcpsrgmapper_resetbutton');
+        button.setAttribute('class', 'minibutton');
+        button.setAttribute('value', 'Reset');
+        button.addEventListener('click', reloadPage, true);
+        container.appendChild(button);
+    }
 }
 
 function insertControlsContainer(target, container)
@@ -279,13 +306,13 @@ function poll()
 
     if ((controlsAdded && codeLines.snapshotLength == 0) || (!controlsAdded && codeLines.snapshotLength > 0))
     {
-        clearInterval(poll);
+        clearInterval(intervalId);
         pollCount = 0;
         init();
     }
     else if (pollCount >= pollLimit)
     {
-        clearInterval(poll);
+        clearInterval(intervalId);
         pollCount = 0;
     }
 }
@@ -333,7 +360,10 @@ if (window.location.hostname === 'github.com')
     $( window.location ).bind("change",
         function(objEvent, objData)
         {
-            setInterval(poll, 500);
+            if (intervalId)
+                clearInterval(intervalId);
+            pollCount = 0;
+            intervalId = setInterval(poll, 500);
         }
     );
 
