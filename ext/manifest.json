@@ -22,6 +22,7 @@
             "matches": [
                 "https://github.com/*/MinecraftForge/*",
                 "https://github.com/*/FML/*",
+                "https://gist.github.com/*",
                 "https://pastebin.com/*",
                 "http://pastebin.com/*"
             ],

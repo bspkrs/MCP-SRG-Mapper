@@ -102,6 +102,29 @@
                     return $('td.blob-code');
                 }
             },
+
+            'gist.github.com': {
+                getControlsTarget: function ()
+                {
+                    return $('ul.pagehead-actions');
+                },
+
+                insertControlsContainer: function (target, container)
+                {
+                    target.prepend(container);
+                },
+
+                getControlsContainer: function ()
+                {
+                    return $('<li></li>');
+                },
+
+                getCodeElements: function ()
+                {
+                    return $('.files .file-data .line-data div.line');
+                }
+            },
+
             'pastebin.com': {
                 getControlsTarget: function ()
                 {
