@@ -26,8 +26,8 @@
     {
         var strLocation = window.location.href;
         var strHash = window.location.hash;
-        var strPrevLocation = "";
-        var strPrevHash = "";
+        var strPrevLocation = '';
+        var strPrevHash = '';
         var intIntervalTime = 200;
         var fnCleanHash = function( strHash )
         {
@@ -44,7 +44,7 @@
                     strLocation = window.location.href;
                     strHash = window.location.hash;
                     $( window.location ).trigger(
-                        "change",
+                        'change',
                         {
                             currentHref: strLocation,
                             currentHash: fnCleanHash( strHash ),
@@ -107,58 +107,60 @@
             updateInputList();
 
             var codeLines = getCodeElements();
-            for (var i = 0; i < codeLines.snapshotLength; i++)
-            {
-                var line = codeLines.snapshotItem(i);
+            codeLines.each(function (index, line) {
                 line.innerHTML = line.innerHTML.replace(/(?:func_\d+_[A-Za-z]+_?|field_\d+_[A-Za-z]+_?|p_(i|)\d+_\d+_?)/g, function (token)
                     {
                         var mcpname = mappings[token];
                         if (mcpname)
-                            return "<u title=\"" + token + "\">" + mcpname + "</u>";
+                            return '<u title="' + token + '">' + mcpname + '</u>';
 
-                        return "<u title=\"" + token + "\"><i>" + token + "</i></u>";
+                        return '<u title="' + token + '"><i>' + token + '</i></u>';
                     }
                 );
-            }
+            });
 
             toastr.success('SRG named elements have been remapped :)');
 
             //chrome.storage.local.getBytesInUse(null, function(bytesInUse){ log('Local Storage Size: ' + bytesInUse); });
         }
 
-        function buttonClicked()
+        function buttonClicked(event)
         {
-            var versionText = document.getElementById('mcpsrgmapper_mapping_version').value.replace('nodoc_', '');
+            var target = $(event.target);
+            if (target.hasClass('selected')) {
+                target.removeClass('selected');
+                $('input#mcpsrgmapper_mapping_version').prop('disabled', false);
 
-            if (savedVersions != null && savedVersions.indexOf(versionText) > -1)
-            {
-                getCachedMappings(versionText, function(mappings)
-                    {
-                        if (mappings)
-                        {
-                            remapSrgNames(mappings);
-                        }
-                        else
-                        {
-                            chrome.runtime.sendMessage(versionText, remapSrgNames);
-                        }
-                    }
-                );
-            }
-            else
-            {
-                chrome.runtime.sendMessage(versionText, remapSrgNames);
-            }
-        }
+                $('u[title]').each(function (index, node) {
+                    $(node).replaceWith($(node).attr('title'));
+                });
+            } else {
+                target.addClass('selected');
 
-        function reloadPage()
-        {
-            if (window.location.hostname === 'github.com')
-                if ($.support.pjax)
+                $('input#mcpsrgmapper_mapping_version').prop('disabled', true);
+
+                var versionText = $('#mcpsrgmapper_mapping_version').val().replace('nodoc_', '');
+
+                if (savedVersions != null && savedVersions.indexOf(versionText) > -1)
                 {
-                    $.pjax.reload('#js-repo-pjax-container', {});
-                    toastr.info('The page has been reset to its original state.');
+                    getCachedMappings(versionText, function(mappings)
+                        {
+                            if (mappings)
+                            {
+                                remapSrgNames(mappings);
+                            }
+                            else
+                            {
+                                chrome.runtime.sendMessage(versionText, remapSrgNames);
+                            }
+                        }
+                    );
                 }
+                else
+                {
+                    chrome.runtime.sendMessage(versionText, remapSrgNames);
+                }
+            }
         }
 
         function getCachedMappings(mappingKey, callback)
@@ -166,21 +168,16 @@
             chrome.storage.local.get(mappingKey, function(items){ callback(items[mappingKey]); });
         }
 
-        function validateVersion()
+        function validateVersion(event)
         {
-            var input = document.getElementById('mcpsrgmapper_mapping_version');
-            var button = document.getElementById('mcpsrgmapper_button');
-
-            if (versionPattern.test(input.value))
-                button.removeAttribute('disabled');
-            else
-                button.setAttribute('disabled', 'true');
+            var disabled = !versionPattern.test($(event.target).val());
+            $('#mcpsrgmapper_button').prop('disabled', disabled);
         }
 
         function updateInputList(list, callback)
         {
             if (!list)
-                list = document.getElementById('mcpsrgmapper_mapping_versions');
+                list = $('#mcpsrgmapper_mapping_versions');
 
             chrome.storage.sync.get('versions',
                 function(items)
@@ -197,15 +194,14 @@
                         else
                             savedVersions = [];
 
-                        while (list.lastChild)
-                            list.removeChild(list.lastChild);
+                        list.html('');
 
                         savedVersions.reverse().forEach(function (version, i)
                         {
-                            var option = document.createElement('option');
-                            option.setAttribute('value', version);
-                            option.innerHTML = version;
-                            list.appendChild(option);
+                            $('<option></option>')
+                                .val(version)
+                                .text(version)
+                                .appendTo(list);
                         });
 
                         if (callback)
@@ -218,48 +214,51 @@
         function addControls()
         {
             var target = getControlsTarget();
-            if (target.snapshotLength != 1)
+            if (target.size() != 1)
                 return;
 
-            var input = document.createElement('input');
-            input.setAttribute('type', 'text');
-            input.setAttribute('class', 'input-mini');
-            //input.setAttribute('style', 'width: 170px');
-            input.setAttribute('id', 'mcpsrgmapper_mapping_version');
-            input.setAttribute('list', 'mcpsrgmapper_mapping_versions');
-            input.setAttribute('placeholder', '1.8:snapshot_20141208');
-            input.addEventListener('paste', validateVersion, true);
-            input.addEventListener('click', validateVersion, true);
-            input.addEventListener('keyup', validateVersion, true);
-            input.addEventListener('blur', validateVersion, true);
+            var container = getControlsContainer();
+            container.attr('id', 'mcpsrgmapper_input_controls');
 
-            var button = document.createElement('input');
-            button.setAttribute('type', 'button');
-            button.setAttribute('id', 'mcpsrgmapper_button');
-            button.setAttribute('class', 'minibutton');
-            button.setAttribute('value', 'Remap');
-            button.addEventListener('click', buttonClicked, true);
-            button.setAttribute('disabled', 'true');
+            $('<input/>')
+                .attr({
+                    'type': 'text',
+                    'class': 'input-mini',
+                    'id': 'mcpsrgmapper_mapping_version',
+                    'list': 'mcpsrgmapper_mapping_versions',
+                    'placeholder': '1.8:snapshot_20141208'
+                })
+                .bind('paste', validateVersion)
+                .bind('click', validateVersion)
+                .bind('keyup', validateVersion)
+                .bind('blur', validateVersion)
+                .appendTo(container);
 
-            var list = document.createElement('datalist');
-            list.setAttribute('id', 'mcpsrgmapper_mapping_versions');
+            $('<input/>')
+                .attr({
+                    'type': 'button',
+                    'id': 'mcpsrgmapper_button',
+                    'class': 'minibutton'
+                })
+                .val('Remap')
+                .prop('disabled', true)
+                .click(buttonClicked)
+                .appendTo(container);
+
+            var list = $('<datalist></datalist>')
+                .attr('id', 'mcpsrgmapper_mapping_versions')
+                .appendTo(container);
 
             updateInputList(list,
                 function()
                 {
-                    if (list.children.length > 0) {
-                        input.setAttribute('value', list.children[0].getAttribute('value'));
-                        button.removeAttribute('disabled');
+                    if (list.children().size() > 0) {
+                        $('input#mcpsrgmapper_mapping_version').val(list.children().eq(0).val());
+                        $('input#mcpsrgmapper_button').prop('disabled', false);
                     }
                 }
             );
 
-            var container = getControlsContainer();
-            container.setAttribute('id', 'mcpsrgmapper_input_controls');
-            container.appendChild(input);
-            container.appendChild(button);
-            addResetButton(container);
-            container.appendChild(list);
             insertControlsContainer(target, container);
 
             controlsAdded = true;
@@ -267,75 +266,58 @@
 
         function removeControls()
         {
-            var controls = document.getElementById('mcpsrgmapper_input_controls');
-            if (controls)
-                controls.parentNode.removeChild(controls);
+            $('#mcpsrgmapper_input_controls').remove();
             controlsAdded = false;
-        }
-
-        function addResetButton(container)
-        {
-            if (window.location.hostname === 'github.com')
-            {
-                var button = document.createElement('input');
-                button.setAttribute('type', 'button');
-                button.setAttribute('id', 'mcpsrgmapper_resetbutton');
-                button.setAttribute('class', 'minibutton');
-                button.setAttribute('value', 'Reset');
-                button.addEventListener('click', reloadPage, true);
-                container.appendChild(button);
-            }
         }
 
         function insertControlsContainer(target, container)
         {
-            var parent = target.snapshotItem(0);
-
             if (window.location.hostname === 'github.com')
-                parent.insertBefore(container, parent.firstChild);
+                target.prepend(container);
             else if (window.location.hostname === 'pastebin.com')
-                parent.appendChild(container);
+                target.append(container)
         }
 
         function getControlsContainer()
         {
             if (window.location.hostname === 'github.com')
-                return document.createElement('li');
+                return $('<li></li>');
             else if (window.location.hostname === 'pastebin.com')
-                return document.createElement('span');
+                return $('<span></span>');
         }
 
         function getControlsTarget()
         {
             if (window.location.hostname === 'github.com')
-                return document.evaluate("//ul[@class='pagehead-actions']", document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null);
+                return $('ul.pagehead-actions');
             else if (window.location.hostname === 'pastebin.com')
-                return document.evaluate("//*[@id='code_buttons']", document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null);
+                return $('#code_buttons');
         }
 
         function getCodeElements()
         {
             if (window.location.hostname === 'github.com')
-                return document.evaluate("//td[contains(concat(' ', normalize-space(@class), ' '), ' blob-code ')]", document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null);
+                return $('td.blob-code');
             else if (window.location.hostname === 'pastebin.com')
-                return document.evaluate("//*[@id='selectable']/div/ol/li", document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null);
+                return $('#selectable>div>ol>li')
         }
 
         function init()
         {
             var codeLines = getCodeElements();
 
-            if (codeLines.snapshotLength > 0 && !controlsAdded)
+            if (codeLines.size() > 0 && !controlsAdded)
             {
-                for (var i = 0; i < codeLines.snapshotLength; i++)
-                {
-                    var text = codeLines.snapshotItem(i).innerHTML;
-                    if (fieldPattern.test(text) || methodPattern.test(text) || paramPattern.test(text))
+                codeLines.each(function (index, line)
                     {
-                        addControls();
-                        break;
+                        var text = $(line).html();
+                        if (fieldPattern.test(text) || methodPattern.test(text) || paramPattern.test(text))
+                        {
+                            addControls();
+                            return false;
+                        }
                     }
-                }
+                );
             }
             else
                 removeControls();
@@ -346,7 +328,7 @@
             var codeLines = getCodeElements();
             pollCount++;
 
-            if ((controlsAdded && codeLines.snapshotLength == 0) || (!controlsAdded && codeLines.snapshotLength > 0))
+            if ((controlsAdded && codeLines.size() == 0) || (!controlsAdded && codeLines.size() > 0))
             {
                 clearInterval(intervalId);
                 pollCount = 0;
@@ -360,7 +342,7 @@
         }
 
         if (window.location.hostname === 'github.com')
-            $( window.location ).bind("change",
+            $( window.location ).bind('change',
                 function(objEvent, objData)
                 {
                     if (intervalId)
