@@ -80,6 +80,53 @@
         var fieldPattern = /field_\d+_[A-Za-z]*/;
         var paramPattern = /p_(i|)\d+_\d+_/;
 
+        var settings = {
+            "github.com": {
+                getControlsTarget: function ()
+                {
+                    return $('ul.pagehead-actions');
+                },
+
+                insertControlsContainer: function (target, container)
+                {
+                    target.prepend(container);
+                },
+
+                getControlsContainer: function ()
+                {
+                    return $('<li></li>');
+                },
+
+                getCodeElements: function ()
+                {
+                    return $('td.blob-code');
+                }
+            },
+            "pastebin.com": {
+                getControlsTarget: function ()
+                {
+                    return $('#code_buttons');
+                },
+
+                insertControlsContainer: function (target, container)
+                {
+                    target.append(container)
+                },
+
+                getControlsContainer: function ()
+                {
+                    return $('<span></span>');
+                },
+
+                getCodeElements: function ()
+                {
+                    return $('#selectable>div>ol>li');
+                }
+            }
+        };
+
+        settings = settings[window.location.hostname];
+
         //function log()
         //{
         //    if (DEBUG)
@@ -106,7 +153,7 @@
 
             updateInputList();
 
-            var codeLines = getCodeElements();
+            var codeLines = settings.getCodeElements();
             codeLines.each(function (index, line) {
                 line.innerHTML = line.innerHTML.replace(/(?:func_\d+_[A-Za-z]+_?|field_\d+_[A-Za-z]+_?|p_(i|)\d+_\d+_?)/g, function (token)
                     {
@@ -213,11 +260,14 @@
 
         function addControls()
         {
-            var target = getControlsTarget();
+            var target = settings.getControlsTarget();
             if (target.size() != 1)
+            {
+                toastr.error("I don't know where to insert the controls :(");
                 return;
+            }
 
-            var container = getControlsContainer();
+            var container = settings.getControlsContainer();
             container.attr('id', 'mcpsrgmapper_input_controls');
 
             $('<input/>')
@@ -259,7 +309,7 @@
                 }
             );
 
-            insertControlsContainer(target, container);
+            settings.insertControlsContainer(target, container);
 
             controlsAdded = true;
         }
@@ -270,41 +320,9 @@
             controlsAdded = false;
         }
 
-        function insertControlsContainer(target, container)
-        {
-            if (window.location.hostname === 'github.com')
-                target.prepend(container);
-            else if (window.location.hostname === 'pastebin.com')
-                target.append(container)
-        }
-
-        function getControlsContainer()
-        {
-            if (window.location.hostname === 'github.com')
-                return $('<li></li>');
-            else if (window.location.hostname === 'pastebin.com')
-                return $('<span></span>');
-        }
-
-        function getControlsTarget()
-        {
-            if (window.location.hostname === 'github.com')
-                return $('ul.pagehead-actions');
-            else if (window.location.hostname === 'pastebin.com')
-                return $('#code_buttons');
-        }
-
-        function getCodeElements()
-        {
-            if (window.location.hostname === 'github.com')
-                return $('td.blob-code');
-            else if (window.location.hostname === 'pastebin.com')
-                return $('#selectable>div>ol>li')
-        }
-
         function init()
         {
-            var codeLines = getCodeElements();
+            var codeLines = settings.getCodeElements();
 
             if (codeLines.size() > 0 && !controlsAdded)
             {
@@ -325,7 +343,7 @@
 
         function poll()
         {
-            var codeLines = getCodeElements();
+            var codeLines = settings.getCodeElements();
             pollCount++;
 
             if ((controlsAdded && codeLines.size() == 0) || (!controlsAdded && codeLines.size() > 0))
@@ -352,6 +370,9 @@
                 }
             );
 
-        init();
+        if (settings)
+            init();
+        else
+            toastr.error("No settings for " + window.location.hostname + " :(");
     }
 )( jQuery );
