@@ -23,6 +23,8 @@
                 "https://github.com/*/MinecraftForge/*",
                 "https://github.com/*/FML/*",
                 "https://gist.github.com/*",
+                "https://paste.feed-the-beast.com/view/*",
+                "http://paste.feed-the-beast.com/view/*",
                 "https://paste.kde.org/*/*",
                 "http://paste.kde.org/*/*",
                 "https://pastebin.com/*",

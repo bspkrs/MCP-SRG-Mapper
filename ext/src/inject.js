@@ -125,6 +125,28 @@
                 }
             },
 
+            'paste.feed-the-beast.com': {
+                getControlsTarget: function ()
+                {
+                    return $('div.col-lg-12>div.detail.by:eq(0)');
+                },
+
+                insertControlsContainer: function (target, container)
+                {
+                    target.append(container)
+                },
+
+                getControlsContainer: function ()
+                {
+                    return $('<span></span>').css('float', 'right');
+                },
+
+                getCodeElements: function ()
+                {
+                    return $('.CodeMirror ol li div');
+                }
+            },
+
             'paste.kde.org': {
                 getControlsTarget: function ()
                 {
