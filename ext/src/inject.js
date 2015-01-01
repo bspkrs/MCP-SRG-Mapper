@@ -81,7 +81,7 @@
         var paramPattern = /p_(i|)\d+_\d+_/;
 
         var settings = {
-            "github.com": {
+            'github.com': {
                 getControlsTarget: function ()
                 {
                     return $('ul.pagehead-actions');
@@ -102,7 +102,7 @@
                     return $('td.blob-code');
                 }
             },
-            "pastebin.com": {
+            'pastebin.com': {
                 getControlsTarget: function ()
                 {
                     return $('#code_buttons');
@@ -181,6 +181,8 @@
                 $('u[title]').each(function (index, node) {
                     $(node).replaceWith($(node).attr('title'));
                 });
+
+                toastr.info('The page has been reset to its original state.');
             } else {
                 target.addClass('selected');
 
@@ -263,7 +265,7 @@
             var target = settings.getControlsTarget();
             if (target.size() != 1)
             {
-                toastr.error("I don't know where to insert the controls :(");
+                toastr.error('I don\'t know where to insert the controls :(');
                 return;
             }
 
@@ -373,6 +375,6 @@
         if (settings)
             init();
         else
-            toastr.error("No settings for " + window.location.hostname + " :(");
+            toastr.error('No settings for ' + window.location.hostname + ' :(');
     }
 )( jQuery );
