@@ -125,6 +125,28 @@
                 }
             },
 
+            'paste.kde.org': {
+                getControlsTarget: function ()
+                {
+                    return $('div.row-fluid>div.span7');
+                },
+
+                insertControlsContainer: function (target, container)
+                {
+                    target.prepend(container)
+                },
+
+                getControlsContainer: function ()
+                {
+                    return $('<span></span>');
+                },
+
+                getCodeElements: function ()
+                {
+                    return $('div.text ol li');
+                }
+            },
+
             'pastebin.com': {
                 getControlsTarget: function ()
                 {
