@@ -22,6 +22,11 @@
             "matches": [
                 "https://github.com/*/MinecraftForge/*",
                 "https://github.com/*/FML/*",
+                "https://gist.github.com/*",
+                "https://paste.feed-the-beast.com/view/*",
+                "http://paste.feed-the-beast.com/view/*",
+                "https://paste.kde.org/*/*",
+                "http://paste.kde.org/*/*",
                 "https://pastebin.com/*",
                 "http://pastebin.com/*"
             ],
@@ -30,7 +35,6 @@
             ],
             "js": [
                 "js/jquery-2.1.1.min.js",
-                "js/jquery.pjax.js",
                 "js/toastr.min.js",
                 "src/inject.js"
             ]
