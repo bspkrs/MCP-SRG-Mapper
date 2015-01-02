@@ -20,334 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-/*
- <div class="modal fade" id="{{ file.channel }}" tabindex="-1" role="dialog" aria-labelledby="{{ file.channel }}Label" aria-hidden="true">
-     <div class="modal-dialog">
-         <div class="modal-content">
-             <div class="modal-header">
-                 <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                 <h4 class="modal-title" id="{{ file.channel }}Label">Use this mapping set in ForgeGradle</h4>
-             </div>
-             <div class="modal-body">
-                 <p>Add or edit this info in your build.gradle file:</p>
-                 <code>minecraft {<br/>
-                 &nbsp;&nbsp;&nbsp;&nbsp;mappings = '{{ file.channel }}'<br/>
-                 }</code>
-             </div>
-             <div class="modal-footer">
-                 <a href="#" class="btn" data-dismiss="modal">Close</a>
-                 <a href="#" class="btn btn-primary" id="save-event">Save Event</a>
-             </div>
-         </div>
-     </div>
- </div>
-*/
-
-toastr.options.closeButton = true;
-toastr.options.showMethod = 'slideDown';
-toastr.options.hideMethod = 'slideUp';
-toastr.options.preventDuplicates = true;
-
-var savedVersions = [];
-var controlsAdded = false;
-var intervalId = 0;
-var pollCount = 0;
-var pollLimit = 20;
-
-var versionPattern = /^\d+\.\d+(\.\d+|):(stable_(nodoc_|)\d+|snapshot_(nodoc_|)\d{8})$/;
-var methodPattern = /func_\d+_[A-Za-z]*/;
-var fieldPattern = /field_\d+_[A-Za-z]*/;
-var paramPattern = /p_(i|)\d+_\d+_/;
-
-//var DEBUG = false;
-
-//function log()
-//{
-//    if (DEBUG)
-//        if (arguments.length == 1)
-//            console.log(chrome.runtime.getManifest()['name'] + ': ' + arguments[0]);
-//        else if (arguments.length > 1)
-//            console.log(chrome.runtime.getManifest()['name'] + ': ' + arguments[0], arguments.slice(1));
-//}
-
-function error()
-{
-    if (arguments.length == 1)
-        console.error(chrome.runtime.getManifest()['name'] + ': ' + arguments[0]);
-    else if (arguments.length > 1)
-        console.error(chrome.runtime.getManifest()['name'] + ': ' + arguments[0], arguments.slice(1));
-}
-
-function remapSrgNames(mappings) {
-    if (mappings['error'])
-    {
-        toastr.error(mappings['error']);
-        return;
-    }
-
-    updateInputList();
-
-    var codeLines = getCodeElements();
-    for (var i = 0; i < codeLines.snapshotLength; i++)
-    {
-        var line = codeLines.snapshotItem(i);
-        line.innerHTML = line.innerHTML.replace(/(?:func_\d+_[A-Za-z]+_?|field_\d+_[A-Za-z]+_?|p_(i|)\d+_\d+_?)/g, function (token)
-            {
-                var mcpname = mappings[token];
-                if (mcpname)
-                    return "<u title=\"" + token + "\">" + mcpname + "</u>";
-
-                return "<u title=\"" + token + "\"><i>" + token + "</i></u>";
-            }
-        );
-    }
-
-    toastr.success('SRG named elements have been remapped :)');
-
-    //chrome.storage.local.getBytesInUse(null, function(bytesInUse){ log('Local Storage Size: ' + bytesInUse); });
-}
-
-function buttonClicked()
-{
-    var versionText = document.getElementById('mcpsrgmapper_mapping_version').value.replace('nodoc_', '');
-
-    if (savedVersions != null && savedVersions.indexOf(versionText) > -1)
-    {
-        getCachedMappings(versionText, function(mappings)
-            {
-                if (mappings)
-                {
-                    remapSrgNames(mappings);
-                }
-                else
-                {
-                    chrome.runtime.sendMessage(versionText, remapSrgNames);
-                }
-            }
-        );
-    }
-    else
-    {
-        chrome.runtime.sendMessage(versionText, remapSrgNames);
-    }
-}
-
-function reloadPage()
-{
-    if (window.location.hostname === 'github.com')
-        if ($.support.pjax)
-        {
-            $.pjax.reload('#js-repo-pjax-container', {});
-            toastr.info('The page has been reset to its original state.');
-        }
-}
-
-function getCachedMappings(mappingKey, callback)
-{
-    chrome.storage.local.get(mappingKey, function(items){ callback(items[mappingKey]); });
-}
-
-function validateVersion()
-{
-    var input = document.getElementById('mcpsrgmapper_mapping_version');
-    var button = document.getElementById('mcpsrgmapper_button');
-
-    if (versionPattern.test(input.value))
-        button.removeAttribute('disabled');
-    else
-        button.setAttribute('disabled', 'true');
-}
-
-function updateInputList(list, callback)
-{
-    if (!list)
-        list = document.getElementById('mcpsrgmapper_mapping_versions');
-
-    chrome.storage.sync.get('versions',
-        function(items)
-        {
-            if (chrome.runtime.lastError)
-            {
-                error(chrome.runtime.lastError.message);
-                savedVersions = [];
-            }
-            else
-            {
-                if (items['versions'])
-                    savedVersions = items['versions'];
-                else
-                    savedVersions = [];
-
-                while (list.lastChild)
-                    list.removeChild(list.lastChild);
-
-                savedVersions.reverse().forEach(function (version, i)
-                {
-                    var option = document.createElement('option');
-                    option.setAttribute('value', version);
-                    option.innerHTML = version;
-                    list.appendChild(option);
-                });
-
-                if (callback)
-                    callback();
-            }
-        }
-    );
-}
-
-function addControls()
-{
-    var target = getControlsTarget();
-    if (target.snapshotLength != 1)
-        return;
-
-    var input = document.createElement('input');
-    input.setAttribute('type', 'text');
-    input.setAttribute('class', 'input-mini');
-    //input.setAttribute('style', 'width: 170px');
-    input.setAttribute('id', 'mcpsrgmapper_mapping_version');
-    input.setAttribute('list', 'mcpsrgmapper_mapping_versions');
-    input.setAttribute('placeholder', '1.8:snapshot_20141208');
-    input.addEventListener('paste', validateVersion, true);
-    input.addEventListener('click', validateVersion, true);
-    input.addEventListener('keyup', validateVersion, true);
-    input.addEventListener('blur', validateVersion, true);
-
-    var button = document.createElement('input');
-    button.setAttribute('type', 'button');
-    button.setAttribute('id', 'mcpsrgmapper_button');
-    button.setAttribute('class', 'minibutton');
-    button.setAttribute('value', 'Remap');
-    button.addEventListener('click', buttonClicked, true);
-    button.setAttribute('disabled', 'true');
-
-    var list = document.createElement('datalist');
-    list.setAttribute('id', 'mcpsrgmapper_mapping_versions');
-
-    updateInputList(list,
-        function()
-        {
-            if (list.children.length > 0) {
-                input.setAttribute('value', list.children[0].getAttribute('value'));
-                button.removeAttribute('disabled');
-            }
-        }
-    );
-
-    var container = getControlsContainer();
-    container.setAttribute('id', 'mcpsrgmapper_input_controls');
-    container.appendChild(input);
-    container.appendChild(button);
-    addResetButton(container);
-    container.appendChild(list);
-    insertControlsContainer(target, container);
-
-    controlsAdded = true;
-}
-
-function removeControls()
-{
-    var controls = document.getElementById('mcpsrgmapper_input_controls');
-    if (controls)
-        controls.parentNode.removeChild(controls);
-    controlsAdded = false;
-}
-
-function addResetButton(container)
-{
-    if (window.location.hostname === 'github.com')
-    {
-        var button = document.createElement('input');
-        button.setAttribute('type', 'button');
-        button.setAttribute('id', 'mcpsrgmapper_resetbutton');
-        button.setAttribute('class', 'minibutton');
-        button.setAttribute('value', 'Reset');
-        button.addEventListener('click', reloadPage, true);
-        container.appendChild(button);
-    }
-}
-
-function insertControlsContainer(target, container)
-{
-    var parent = target.snapshotItem(0);
-
-    if (window.location.hostname === 'github.com')
-        parent.insertBefore(container, parent.firstChild);
-    else if (window.location.hostname === 'pastebin.com')
-        parent.appendChild(container);
-}
-
-function getControlsContainer()
-{
-    if (window.location.hostname === 'github.com')
-        return document.createElement('li');
-    else if (window.location.hostname === 'pastebin.com')
-        return document.createElement('span');
-}
-
-function getControlsTarget()
-{
-    if (window.location.hostname === 'github.com')
-        return document.evaluate("//ul[@class='pagehead-actions']", document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null);
-    else if (window.location.hostname === 'pastebin.com')
-        return document.evaluate("//*[@id='code_buttons']", document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null);
-}
-
-function getCodeElements()
-{
-    if (window.location.hostname === 'github.com')
-        return document.evaluate("//td[contains(concat(' ', normalize-space(@class), ' '), ' blob-code ')]", document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null);
-    else if (window.location.hostname === 'pastebin.com')
-        return document.evaluate("//*[@id='selectable']/div/ol/li", document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null);
-}
-
-function init()
-{
-    var codeLines = getCodeElements();
-
-    if (codeLines.snapshotLength > 0 && !controlsAdded)
-    {
-        for (var i = 0; i < codeLines.snapshotLength; i++)
-        {
-            var text = codeLines.snapshotItem(i).innerHTML;
-            if (fieldPattern.test(text) || methodPattern.test(text) || paramPattern.test(text))
-            {
-                addControls();
-                break;
-            }
-        }
-    }
-    else
-        removeControls();
-}
-
-function poll()
-{
-    var codeLines = getCodeElements();
-    pollCount++;
-
-    if ((controlsAdded && codeLines.snapshotLength == 0) || (!controlsAdded && codeLines.snapshotLength > 0))
-    {
-        clearInterval(intervalId);
-        pollCount = 0;
-        init();
-    }
-    else if (pollCount >= pollLimit)
-    {
-        clearInterval(intervalId);
-        pollCount = 0;
-    }
-}
-
 // The following is mostly copied from http://www.bennadel.com/blog/1520-binding-events-to-non-dom-objects-with-jquery.htm
 (
     function( $ )
     {
         var strLocation = window.location.href;
         var strHash = window.location.hash;
-        var strPrevLocation = "";
-        var strPrevHash = "";
+        var strPrevLocation = '';
+        var strPrevHash = '';
         var intIntervalTime = 200;
         var fnCleanHash = function( strHash )
         {
@@ -364,7 +44,7 @@ function poll()
                     strLocation = window.location.href;
                     strHash = window.location.hash;
                     $( window.location ).trigger(
-                        "change",
+                        'change',
                         {
                             currentHref: strLocation,
                             currentHash: fnCleanHash( strHash ),
@@ -379,15 +59,389 @@ function poll()
     }
 )( jQuery );
 
-if (window.location.hostname === 'github.com')
-    $( window.location ).bind("change",
-        function(objEvent, objData)
-        {
-            if (intervalId)
-                clearInterval(intervalId);
-            pollCount = 0;
-            intervalId = setInterval(poll, 500);
-        }
-    );
+(
+    function( $ )
+    {
+        toastr.options.closeButton = true;
+        toastr.options.showMethod = 'slideDown';
+        toastr.options.hideMethod = 'slideUp';
+        toastr.options.preventDuplicates = true;
 
-init();
+        //var DEBUG = false;
+
+        var savedVersions = [];
+        var controlsAdded = false;
+        var intervalId = 0;
+        var pollCount = 0;
+        var pollLimit = 20;
+
+        var versionPattern = /^\d+\.\d+(\.\d+|):(stable_(nodoc_|)\d+|snapshot_(nodoc_|)\d{8})$/;
+        var methodPattern = /func_\d+_[A-Za-z]*/;
+        var fieldPattern = /field_\d+_[A-Za-z]*/;
+        var paramPattern = /p_(i|)\d+_\d+_/;
+
+        var settings = {
+            'github.com': {
+                getControlsTarget: function ()
+                {
+                    return $('ul.pagehead-actions');
+                },
+
+                insertControlsContainer: function (target, container)
+                {
+                    target.prepend(container);
+                },
+
+                getControlsContainer: function ()
+                {
+                    return $('<li></li>');
+                },
+
+                getCodeElements: function ()
+                {
+                    return $('td.blob-code');
+                }
+            },
+
+            'gist.github.com': {
+                getControlsTarget: function ()
+                {
+                    return $('ul.pagehead-actions');
+                },
+
+                insertControlsContainer: function (target, container)
+                {
+                    target.prepend(container);
+                },
+
+                getControlsContainer: function ()
+                {
+                    return $('<li></li>');
+                },
+
+                getCodeElements: function ()
+                {
+                    return $('.files .file-data .line-data div.line');
+                }
+            },
+
+            'paste.feed-the-beast.com': {
+                getControlsTarget: function ()
+                {
+                    return $('div.col-lg-12>div.detail.by:eq(0)');
+                },
+
+                insertControlsContainer: function (target, container)
+                {
+                    target.append(container)
+                },
+
+                getControlsContainer: function ()
+                {
+                    return $('<span></span>').css('float', 'right');
+                },
+
+                getCodeElements: function ()
+                {
+                    return $('.CodeMirror ol li div');
+                }
+            },
+
+            'paste.kde.org': {
+                getControlsTarget: function ()
+                {
+                    return $('div.row-fluid>div.span7');
+                },
+
+                insertControlsContainer: function (target, container)
+                {
+                    target.prepend(container)
+                },
+
+                getControlsContainer: function ()
+                {
+                    return $('<span></span>');
+                },
+
+                getCodeElements: function ()
+                {
+                    return $('div.text ol li');
+                }
+            },
+
+            'pastebin.com': {
+                getControlsTarget: function ()
+                {
+                    return $('#code_buttons');
+                },
+
+                insertControlsContainer: function (target, container)
+                {
+                    target.append(container)
+                },
+
+                getControlsContainer: function ()
+                {
+                    return $('<span></span>');
+                },
+
+                getCodeElements: function ()
+                {
+                    return $('#selectable>div>ol>li');
+                }
+            }
+        };
+
+        settings = settings[window.location.hostname];
+
+        //function log()
+        //{
+        //    if (DEBUG)
+        //        if (arguments.length == 1)
+        //            console.log(chrome.runtime.getManifest()['name'] + ': ' + arguments[0]);
+        //        else if (arguments.length > 1)
+        //            console.log(chrome.runtime.getManifest()['name'] + ': ' + arguments[0], arguments.slice(1));
+        //}
+
+        function error()
+        {
+            if (arguments.length == 1)
+                console.error(chrome.runtime.getManifest()['name'] + ': ' + arguments[0]);
+            else if (arguments.length > 1)
+                console.error(chrome.runtime.getManifest()['name'] + ': ' + arguments[0], arguments.slice(1));
+        }
+
+        function remapSrgNames(mappings) {
+            if (mappings['error'])
+            {
+                toastr.error(mappings['error']);
+                return;
+            }
+
+            updateInputList();
+
+            var codeLines = settings.getCodeElements();
+            codeLines.each(function (index, line) {
+                line.innerHTML = line.innerHTML.replace(/(?:func_\d+_[A-Za-z]+_?|field_\d+_[A-Za-z]+_?|p_(i|)\d+_\d+_?)/g, function (token)
+                    {
+                        var mcpname = mappings[token];
+                        if (mcpname)
+                            return '<u title="' + token + '">' + mcpname + '</u>';
+
+                        return '<u title="' + token + '"><i>' + token + '</i></u>';
+                    }
+                );
+            });
+
+            toastr.success('SRG named elements have been remapped :)');
+
+            //chrome.storage.local.getBytesInUse(null, function(bytesInUse){ log('Local Storage Size: ' + bytesInUse); });
+        }
+
+        function buttonClicked(event)
+        {
+            var target = $(event.target);
+            if (target.hasClass('selected')) {
+                target.removeClass('selected');
+                $('input#mcpsrgmapper_mapping_version').prop('disabled', false);
+
+                $('u[title]').each(function (index, node) {
+                    $(node).replaceWith($(node).attr('title'));
+                });
+
+                toastr.info('The page has been reset to its original state.');
+            } else {
+                target.addClass('selected');
+
+                $('input#mcpsrgmapper_mapping_version').prop('disabled', true);
+
+                var versionText = $('#mcpsrgmapper_mapping_version').val().replace('nodoc_', '');
+
+                if (savedVersions != null && savedVersions.indexOf(versionText) > -1)
+                {
+                    getCachedMappings(versionText, function(mappings)
+                        {
+                            if (mappings)
+                            {
+                                remapSrgNames(mappings);
+                            }
+                            else
+                            {
+                                chrome.runtime.sendMessage(versionText, remapSrgNames);
+                            }
+                        }
+                    );
+                }
+                else
+                {
+                    chrome.runtime.sendMessage(versionText, remapSrgNames);
+                }
+            }
+        }
+
+        function getCachedMappings(mappingKey, callback)
+        {
+            chrome.storage.local.get(mappingKey, function(items){ callback(items[mappingKey]); });
+        }
+
+        function validateVersion(event)
+        {
+            var disabled = !versionPattern.test($(event.target).val());
+            $('#mcpsrgmapper_button').prop('disabled', disabled);
+        }
+
+        function updateInputList(list, callback)
+        {
+            if (!list)
+                list = $('#mcpsrgmapper_mapping_versions');
+
+            chrome.storage.sync.get('versions',
+                function(items)
+                {
+                    if (chrome.runtime.lastError)
+                    {
+                        error(chrome.runtime.lastError.message);
+                        savedVersions = [];
+                    }
+                    else
+                    {
+                        if (items['versions'])
+                            savedVersions = items['versions'];
+                        else
+                            savedVersions = [];
+
+                        list.html('');
+
+                        savedVersions.reverse().forEach(function (version, i)
+                        {
+                            $('<option></option>')
+                                .val(version)
+                                .text(version)
+                                .appendTo(list);
+                        });
+
+                        if (callback)
+                            callback();
+                    }
+                }
+            );
+        }
+
+        function addControls()
+        {
+            var target = settings.getControlsTarget();
+            if (target.size() != 1)
+            {
+                toastr.error('I don\'t know where to insert the controls :(');
+                return;
+            }
+
+            var container = settings.getControlsContainer();
+            container.attr('id', 'mcpsrgmapper_input_controls');
+
+            $('<input/>')
+                .attr({
+                    'type': 'text',
+                    'class': 'input-mini',
+                    'id': 'mcpsrgmapper_mapping_version',
+                    'list': 'mcpsrgmapper_mapping_versions',
+                    'placeholder': '1.8:snapshot_20141208'
+                })
+                .bind('paste', validateVersion)
+                .bind('click', validateVersion)
+                .bind('keyup', validateVersion)
+                .bind('blur', validateVersion)
+                .appendTo(container);
+
+            $('<input/>')
+                .attr({
+                    'type': 'button',
+                    'id': 'mcpsrgmapper_button',
+                    'class': 'minibutton'
+                })
+                .val('Remap')
+                .prop('disabled', true)
+                .click(buttonClicked)
+                .appendTo(container);
+
+            var list = $('<datalist></datalist>')
+                .attr('id', 'mcpsrgmapper_mapping_versions')
+                .appendTo(container);
+
+            updateInputList(list,
+                function()
+                {
+                    if (list.children().size() > 0) {
+                        $('input#mcpsrgmapper_mapping_version').val(list.children().eq(0).val());
+                        $('input#mcpsrgmapper_button').prop('disabled', false);
+                    }
+                }
+            );
+
+            settings.insertControlsContainer(target, container);
+
+            controlsAdded = true;
+        }
+
+        function removeControls()
+        {
+            $('#mcpsrgmapper_input_controls').remove();
+            controlsAdded = false;
+        }
+
+        function init()
+        {
+            var codeLines = settings.getCodeElements();
+
+            if (codeLines.size() > 0 && !controlsAdded)
+            {
+                codeLines.each(function (index, line)
+                    {
+                        var text = $(line).html();
+                        if (fieldPattern.test(text) || methodPattern.test(text) || paramPattern.test(text))
+                        {
+                            addControls();
+                            return false;
+                        }
+                    }
+                );
+            }
+            else
+                removeControls();
+        }
+
+        function poll()
+        {
+            var codeLines = settings.getCodeElements();
+            pollCount++;
+
+            if ((controlsAdded && codeLines.size() == 0) || (!controlsAdded && codeLines.size() > 0))
+            {
+                clearInterval(intervalId);
+                pollCount = 0;
+                init();
+            }
+            else if (pollCount >= pollLimit)
+            {
+                clearInterval(intervalId);
+                pollCount = 0;
+            }
+        }
+
+        if (window.location.hostname === 'github.com')
+            $( window.location ).bind('change',
+                function(objEvent, objData)
+                {
+                    if (intervalId)
+                        clearInterval(intervalId);
+                    pollCount = 0;
+                    intervalId = setInterval(poll, 500);
+                }
+            );
+
+        if (settings)
+            init();
+        else
+            toastr.error('No settings for ' + window.location.hostname + ' :(');
+    }
+)( jQuery );
