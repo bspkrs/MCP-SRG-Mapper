@@ -18,7 +18,6 @@
         "http://files.minecraftforge.net/maven/de/oceanlabs/mcp/*",
         "http://export.mcpbot.bspk.rs/*"
     ],
-    "options_page": "src/options_custom/index.html",
     "content_scripts": [
         {
             "matches": [
