@@ -20,12 +20,33 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+/*
+ <div class="modal fade" id="{{ file.channel }}" tabindex="-1" role="dialog" aria-labelledby="{{ file.channel }}Label" aria-hidden="true">
+     <div class="modal-dialog">
+         <div class="modal-content">
+             <div class="modal-header">
+                 <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                 <h4 class="modal-title" id="{{ file.channel }}Label">Use this mapping set in ForgeGradle</h4>
+             </div>
+             <div class="modal-body">
+                 <p>Add or edit this info in your build.gradle file:</p>
+                 <code>minecraft {<br/>
+                 &nbsp;&nbsp;&nbsp;&nbsp;mappings = '{{ file.channel }}'<br/>
+                 }</code>
+             </div>
+             <div class="modal-footer">
+                 <a href="#" class="btn" data-dismiss="modal">Close</a>
+                 <a href="#" class="btn btn-primary" id="save-event">Save Event</a>
+             </div>
+         </div>
+     </div>
+ </div>
+*/
+
 toastr.options.closeButton = true;
 toastr.options.showMethod = 'slideDown';
 toastr.options.hideMethod = 'slideUp';
 toastr.options.preventDuplicates = true;
-
-//var DEBUG = false;
 
 var savedVersions = [];
 var controlsAdded = false;
@@ -37,6 +58,8 @@ var versionPattern = /^\d+\.\d+(\.\d+|):(stable_(nodoc_|)\d+|snapshot_(nodoc_|)\
 var methodPattern = /func_\d+_[A-Za-z]*/;
 var fieldPattern = /field_\d+_[A-Za-z]*/;
 var paramPattern = /p_(i|)\d+_\d+_/;
+
+//var DEBUG = false;
 
 //function log()
 //{

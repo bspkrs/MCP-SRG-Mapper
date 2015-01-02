@@ -1,8 +1,8 @@
 {
     "name": "MCP SRG Mapper",
-    "version": "0.1.2",
+    "version": "0.2.1",
     "manifest_version": 2,
-    "description": "Applies MCP mappings to SRG named code snippets on github repos and pastebins.",
+    "description": "Applies MCP mappings to SRG named code snippets on github repos and paste services.",
     "homepage_url": "https://github.com/bspkrs/MCP-SRG-Mapper",
     "icons": {
         "16": "icons/icon16.png",
@@ -15,8 +15,10 @@
     "permissions": [
         "storage",
         "unlimitedStorage",
-        "http://files.minecraftforge.net/maven/de/oceanlabs/mcp/*"
+        "http://files.minecraftforge.net/maven/de/oceanlabs/mcp/*",
+        "http://export.mcpbot.bspk.rs/*"
     ],
+    "options_page": "src/options_custom/index.html",
     "content_scripts": [
         {
             "matches": [

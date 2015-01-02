@@ -27,3 +27,5 @@ The usage of toastr is covered by the MIT license. https://github.com/CodeSeven/
 The usage of jQuery is covered by the MIT license. https://jquery.org
 
 The usage of jquery-pjax is covered by the MIT license. https://github.com/defunkt/jquery-pjax
+
+The usage of fancy-settings is covered by the LGPL 2.1. https://github.com/altryne/fancy-settings

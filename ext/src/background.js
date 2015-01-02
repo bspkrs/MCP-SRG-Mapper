@@ -20,16 +20,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-var DEBUG = true;
-
-function log()
-{
-    if (DEBUG)
-        if (arguments.length == 1)
-            console.log(chrome.runtime.getManifest()['name'] + ': ' + arguments[0]);
-        else if (arguments.length > 1)
-            console.log(chrome.runtime.getManifest()['name'] + ': ' + arguments[0], arguments.slice(1));
-}
+//var DEBUG = true;
+//
+//function log()
+//{
+//    if (DEBUG)
+//        if (arguments.length == 1)
+//            console.log(chrome.runtime.getManifest()['name'] + ': ' + arguments[0]);
+//        else if (arguments.length > 1)
+//            console.log(chrome.runtime.getManifest()['name'] + ': ' + arguments[0], arguments.slice(1));
+//}
 
 function error()
 {
@@ -79,7 +79,6 @@ function fetchCsvZip(versionInput, sender, callback)
 
 function onZipFetch(mappingKey, data, callback)
 {
-    log('We got the zip file! Hooray!');
     var zip = JSZip(data);
 
     var mappings = {};
