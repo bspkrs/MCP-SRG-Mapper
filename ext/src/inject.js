@@ -147,6 +147,28 @@
                 }
             },
 
+            'openeye.openmods.info': {
+                getControlsTarget: function ()
+                {
+                    return $('div.page-header');
+                },
+
+                insertControlsContainer: function (target, container)
+                {
+                    target.append(container);
+                },
+
+                getControlsContainer: function ()
+                {
+                    return $('<div></div>');
+                },
+
+                getCodeElements: function ()
+                {
+                    return $('span.highlight_method');
+                }
+            },
+
             'paste.kde.org': {
                 getControlsTarget: function ()
                 {
