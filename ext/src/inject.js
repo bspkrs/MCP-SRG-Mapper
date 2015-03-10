@@ -289,14 +289,14 @@
                             }
                             else
                             {
-                                chrome.runtime.sendMessage(versionText, remapSrgNames);
+                                chrome.runtime.sendMessage({type: "fetchCsvZip", data: versionText}, remapSrgNames);
                             }
                         }
                     );
                 }
                 else
                 {
-                    chrome.runtime.sendMessage(versionText, remapSrgNames);
+                    chrome.runtime.sendMessage({type: "fetchCsvZip", data: versionText}, remapSrgNames);
                 }
             }
         }
@@ -413,6 +413,9 @@
 
         function init()
         {
+            // TODO: only send the message every X hours
+            // chrome.runtime.sendMessage({type: "fetchVersions", data: null});
+
             var codeLines = settings.getCodeElements();
 
             if (codeLines.size() > 0 && !controlsAdded)
