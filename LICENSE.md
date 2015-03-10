@@ -1,6 +1,6 @@
 The MIT License (MIT)
 
-MCP SRG Mapper is Copyright (c) 2014 bspkrs (bspkrs@gmail.com)
+MCP SRG Mapper is Copyright (c) 2015 bspkrs (bspkrs@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -25,3 +25,5 @@ The usage of JSZip is covered by the MIT license. https://github.com/Stuk/jszip
 The usage of toastr is covered by the MIT license. https://github.com/CodeSeven/toastr
 
 The usage of jQuery is covered by the MIT license. https://jquery.org
+
+The usage of Chosen is covered by the MIT license. https://github.com/harvesthq/chosen

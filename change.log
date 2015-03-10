@@ -1,6 +1,10 @@
-0.1.2 - 12/15/2014
+0.2.1 - 10-Mar-2015
+- added versions json support (courtesy of Lunatrius)
+- spam clicking the remap/reset button will no longer mess up the page
+
+0.1.2 - 15-Dec-2014
 - fixed drop-down list of previously entered values not being shown
 - added a reset button for github to revert back to SRG names
 
-0.1.1 - 12/13/2014 
+0.1.1 - 13-Dec-2014
 - initial release

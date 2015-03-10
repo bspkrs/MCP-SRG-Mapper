@@ -234,9 +234,12 @@
         }
 
         function remapSrgNames(mappings) {
+            button = $('input#mcpsrgmapper_button');
             if (mappings['error'])
             {
                 toastr.error(mappings['error']);
+                button.prop('disabled', false);
+                $('select#mcpsrgmapper_mapping_version').prop('disabled', false);
                 return;
             }
 
@@ -253,6 +256,8 @@
                 );
             });
 
+            button.prop('disabled', false).val('Reset');
+
             toastr.success('SRG named elements have been remapped :)');
 
             //chrome.storage.local.getBytesInUse(null, function(bytesInUse){ log('Local Storage Size: ' + bytesInUse); });
@@ -262,16 +267,18 @@
         {
             var target = $(event.target);
             if (target.hasClass('selected')) {
-                target.removeClass('selected');
-                $('select#mcpsrgmapper_mapping_version').prop('disabled', false);
+                target.removeClass('selected').prop('disabled', true).val('Remap');
 
                 $('u[title]').each(function (index, node) {
                     $(node).replaceWith($(node).attr('title'));
                 });
 
+                $('select#mcpsrgmapper_mapping_version').prop('disabled', false);
+                target.prop('disabled', false);
                 toastr.info('The page has been reset to its original state.');
             } else {
                 target.addClass('selected');
+                target.prop('disabled', true);
 
                 $('select#mcpsrgmapper_mapping_version').prop('disabled', true);
 
@@ -328,6 +335,8 @@
                 })
                 .bind('change', updateLastSelectedMappings)
                 .appendTo(container);
+
+            //$("select#mcpsrgmapper_mapping_version").chosen();
 
             $('<input/>')
                 .attr({
