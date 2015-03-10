@@ -289,14 +289,14 @@
                             }
                             else
                             {
-                                chrome.runtime.sendMessage({type: "fetchCsvZip", data: versionText}, remapSrgNames);
+                                chrome.runtime.sendMessage({type: 'fetchCsvZip', data: versionText}, remapSrgNames);
                             }
                         }
                     );
                 }
                 else
                 {
-                    chrome.runtime.sendMessage({type: "fetchCsvZip", data: versionText}, remapSrgNames);
+                    chrome.runtime.sendMessage({type: 'fetchCsvZip', data: versionText}, remapSrgNames);
                 }
             }
         }
@@ -411,10 +411,28 @@
             controlsAdded = false;
         }
 
+        function populateVersions(data)
+        {
+            // TODO: implement
+        }
+
         function init()
         {
-            // TODO: only send the message every X hours
-            // chrome.runtime.sendMessage({type: "fetchVersions", data: null});
+            chrome.storage.local.get('lastupdate', function (items)
+            {
+                if (!items.lastupdate || items.lastupdate + 1000 * 3600 * 12 < new Date().getTime())
+                {
+                    chrome.runtime.sendMessage({type: 'fetchVersions', data: null}, populateVersions);
+                }
+                else
+                {
+                    chrome.storage.local.get('versionlist', function (items)
+                        {
+                            populateVersions(items.versionlist);
+                        }
+                    );
+                }
+            });
 
             var codeLines = settings.getCodeElements();
 

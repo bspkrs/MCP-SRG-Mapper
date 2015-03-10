@@ -44,26 +44,25 @@ chrome.runtime.onMessage.addListener(fetch);
 
 function fetch(message, sender, callback)
 {
-    if (message.type === "fetchVersions")
+    if (message.type === 'fetchVersions')
         return fetchVersions(message.data, sender, callback);
 
-    if (message.type === "fetchCsvZip")
+    if (message.type === 'fetchCsvZip')
         return fetchCsvZip(message.data, sender, callback);
 
-    error("Don't know what to do with this...", message);
+    error('Don\'t know what to do with this...', message);
 }
 
-function fetchVersions()
+function fetchVersions(data, sender, callback)
 {
     var xhr = new XMLHttpRequest();
-    var url = "http://export.mcpbot.bspk.rs/versions.json?limit=5";
+    var url = 'http://export.mcpbot.bspk.rs/versions.json?limit=5';
     xhr.onreadystatechange = function(data)
     {
         if (xhr.readyState == 4)
         {
             if (xhr.status == 200)
-                // TODO: JSON.parse and save this
-                log(xhr.responseText);
+                onVersionsFetch(JSON.parse(xhr.responseText), callback);
             else
                 callback({error: 'Unable to retrieve version file! Status ' + xhr.status + ' returned from ' + url});
         }
@@ -73,6 +72,14 @@ function fetchVersions()
     xhr.open('GET', url, true);
     xhr.send();
     return true;
+}
+
+function onVersionsFetch(data, callback)
+{
+    chrome.storage.local.set({
+        'versionlist': data,
+        'lastupdate': new Date().getTime()
+    }, function () { callback(data); });
 }
 
 function getZipUrl(input)
