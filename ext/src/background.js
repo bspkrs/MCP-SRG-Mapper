@@ -20,28 +20,67 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-//var DEBUG = true;
-//
-//function log()
-//{
-//    if (DEBUG)
-//        if (arguments.length == 1)
-//            console.log(chrome.runtime.getManifest()['name'] + ': ' + arguments[0]);
-//        else if (arguments.length > 1)
-//            console.log(chrome.runtime.getManifest()['name'] + ': ' + arguments[0], arguments.slice(1));
-//}
+var DEBUG = true;
+
+var log = DEBUG ? function ()
+{
+    if (arguments.length == 1)
+        console.log(chrome.runtime.getManifest()['name'] + ': ' + arguments[0]);
+    else if (arguments.length > 1)
+        console.log(chrome.runtime.getManifest()['name'] + ': ' + arguments[0], Array.prototype.slice.call(arguments).slice(1));
+} : function () {};
 
 function error()
 {
     if (arguments.length == 1)
         console.error(chrome.runtime.getManifest()['name'] + ': ' + arguments[0]);
     else if (arguments.length > 1)
-        console.error(chrome.runtime.getManifest()['name'] + ': ' + arguments[0], arguments.slice(1));
+        console.error(chrome.runtime.getManifest()['name'] + ': ' + arguments[0], Array.prototype.slice.call(arguments).slice(1));
 }
 
 var baseUrl = 'http://files.minecraftforge.net/maven/de/oceanlabs/mcp/';
 
-chrome.runtime.onMessage.addListener(fetchCsvZip);
+chrome.runtime.onMessage.addListener(fetch);
+
+function fetch(message, sender, callback)
+{
+    if (message.type === 'fetchVersions')
+        return fetchVersions(message.data, sender, callback);
+
+    if (message.type === 'fetchCsvZip')
+        return fetchCsvZip(message.data, sender, callback);
+
+    error('Don\'t know what to do with this...', message);
+}
+
+function fetchVersions(data, sender, callback)
+{
+    var xhr = new XMLHttpRequest();
+    var url = 'http://export.mcpbot.bspk.rs/versions.json?limit=5';
+    xhr.onreadystatechange = function(data)
+    {
+        if (xhr.readyState == 4)
+        {
+            if (xhr.status == 200)
+                onVersionsFetch(JSON.parse(xhr.responseText), callback);
+            else
+                callback({error: 'Unable to retrieve version file! Status ' + xhr.status + ' returned from ' + url});
+        }
+    };
+
+    log(url);
+    xhr.open('GET', url, true);
+    xhr.send();
+    return true;
+}
+
+function onVersionsFetch(data, callback)
+{
+    chrome.storage.local.set({
+        'versionlist': data,
+        'lastupdate': new Date().getTime()
+    }, function () { callback(data); });
+}
 
 function getZipUrl(input)
 {

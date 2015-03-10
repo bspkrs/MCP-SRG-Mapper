@@ -147,6 +147,28 @@
                 }
             },
 
+            'openeye.openmods.info': {
+                getControlsTarget: function ()
+                {
+                    return $('div.page-header');
+                },
+
+                insertControlsContainer: function (target, container)
+                {
+                    target.append(container);
+                },
+
+                getControlsContainer: function ()
+                {
+                    return $('<div></div>');
+                },
+
+                getCodeElements: function ()
+                {
+                    return $('span.highlight_method');
+                }
+            },
+
             'paste.kde.org': {
                 getControlsTarget: function ()
                 {
@@ -218,8 +240,6 @@
                 return;
             }
 
-            updateInputList();
-
             var codeLines = settings.getCodeElements();
             codeLines.each(function (index, line) {
                 line.innerHTML = line.innerHTML.replace(/(?:func_\d+_[A-Za-z]+_?|field_\d+_[A-Za-z]+_?|p_(i|)\d+_\d+_?)/g, function (token)
@@ -243,7 +263,7 @@
             var target = $(event.target);
             if (target.hasClass('selected')) {
                 target.removeClass('selected');
-                $('input#mcpsrgmapper_mapping_version').prop('disabled', false);
+                $('select#mcpsrgmapper_mapping_version').prop('disabled', false);
 
                 $('u[title]').each(function (index, node) {
                     $(node).replaceWith($(node).attr('title'));
@@ -253,7 +273,7 @@
             } else {
                 target.addClass('selected');
 
-                $('input#mcpsrgmapper_mapping_version').prop('disabled', true);
+                $('select#mcpsrgmapper_mapping_version').prop('disabled', true);
 
                 var versionText = $('#mcpsrgmapper_mapping_version').val().replace('nodoc_', '');
 
@@ -267,14 +287,14 @@
                             }
                             else
                             {
-                                chrome.runtime.sendMessage(versionText, remapSrgNames);
+                                chrome.runtime.sendMessage({type: 'fetchCsvZip', data: versionText}, remapSrgNames);
                             }
                         }
                     );
                 }
                 else
                 {
-                    chrome.runtime.sendMessage(versionText, remapSrgNames);
+                    chrome.runtime.sendMessage({type: 'fetchCsvZip', data: versionText}, remapSrgNames);
                 }
             }
         }
@@ -284,47 +304,9 @@
             chrome.storage.local.get(mappingKey, function(items){ callback(items[mappingKey]); });
         }
 
-        function validateVersion(event)
+        function updateLastSelectedMappings()
         {
-            var disabled = !versionPattern.test($(event.target).val());
-            $('#mcpsrgmapper_button').prop('disabled', disabled);
-        }
-
-        function updateInputList(list, callback)
-        {
-            if (!list)
-                list = $('#mcpsrgmapper_mapping_versions');
-
-            chrome.storage.sync.get('versions',
-                function(items)
-                {
-                    if (chrome.runtime.lastError)
-                    {
-                        error(chrome.runtime.lastError.message);
-                        savedVersions = [];
-                    }
-                    else
-                    {
-                        if (items['versions'])
-                            savedVersions = items['versions'];
-                        else
-                            savedVersions = [];
-
-                        list.html('');
-
-                        savedVersions.reverse().forEach(function (version, i)
-                        {
-                            $('<option></option>')
-                                .val(version)
-                                .text(version)
-                                .appendTo(list);
-                        });
-
-                        if (callback)
-                            callback();
-                    }
-                }
-            );
+            chrome.storage.local.set({'lastselected': $(this).val()});
         }
 
         function addControls()
@@ -339,18 +321,12 @@
             var container = settings.getControlsContainer();
             container.attr('id', 'mcpsrgmapper_input_controls');
 
-            $('<input/>')
+            $("<select/>")
                 .attr({
-                    'type': 'text',
                     'class': 'input-mini',
-                    'id': 'mcpsrgmapper_mapping_version',
-                    'list': 'mcpsrgmapper_mapping_versions',
-                    'placeholder': '1.8:snapshot_20141208'
+                    'id': 'mcpsrgmapper_mapping_version'
                 })
-                .bind('paste', validateVersion)
-                .bind('click', validateVersion)
-                .bind('keyup', validateVersion)
-                .bind('blur', validateVersion)
+                .bind('change', updateLastSelectedMappings)
                 .appendTo(container);
 
             $('<input/>')
@@ -368,16 +344,6 @@
                 .attr('id', 'mcpsrgmapper_mapping_versions')
                 .appendTo(container);
 
-            updateInputList(list,
-                function()
-                {
-                    if (list.children().size() > 0) {
-                        $('input#mcpsrgmapper_mapping_version').val(list.children().eq(0).val());
-                        $('input#mcpsrgmapper_button').prop('disabled', false);
-                    }
-                }
-            );
-
             settings.insertControlsContainer(target, container);
 
             controlsAdded = true;
@@ -389,8 +355,53 @@
             controlsAdded = false;
         }
 
+        function populateVersions(data)
+        {
+            $.each(data, function (mc, types)
+                {
+                    $.each(types, function (type, ids)
+                        {
+                            $.each(ids, function (index, id)
+                                {
+                                    var value = mc + ':' + type + '_' + id;
+                                    $('<option/>').val(value).text(value).appendTo('select#mcpsrgmapper_mapping_version');
+                                }
+                            );
+                        }
+                    );
+                }
+            );
+
+            chrome.storage.local.get('lastselected', function (items)
+                {
+                    if (items.lastselected)
+                    {
+                        $('select#mcpsrgmapper_mapping_version').val(items.lastselected);
+                    }
+                }
+            );
+
+            $('input#mcpsrgmapper_button').prop('disabled', false);
+        }
+
         function init()
         {
+            chrome.storage.local.get('lastupdate', function (items)
+            {
+                if (!items.lastupdate || items.lastupdate + 1000 * 3600 * 12 < new Date().getTime())
+                {
+                    chrome.runtime.sendMessage({type: 'fetchVersions', data: null}, populateVersions);
+                }
+                else
+                {
+                    chrome.storage.local.get('versionlist', function (items)
+                        {
+                            populateVersions(items.versionlist);
+                        }
+                    );
+                }
+            });
+
             var codeLines = settings.getCodeElements();
 
             if (codeLines.size() > 0 && !controlsAdded)
