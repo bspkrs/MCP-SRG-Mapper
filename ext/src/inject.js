@@ -304,6 +304,11 @@
             chrome.storage.local.get(mappingKey, function(items){ callback(items[mappingKey]); });
         }
 
+        function updateLastSelectedMappings()
+        {
+            chrome.storage.local.set({'lastselected': $(this).val()});
+        }
+
         function addControls()
         {
             var target = settings.getControlsTarget();
@@ -321,6 +326,7 @@
                     'class': 'input-mini',
                     'id': 'mcpsrgmapper_mapping_version'
                 })
+                .bind('change', updateLastSelectedMappings)
                 .appendTo(container);
 
             $('<input/>')
@@ -363,6 +369,15 @@
                             );
                         }
                     );
+                }
+            );
+
+            chrome.storage.local.get('lastselected', function (items)
+                {
+                    if (items.lastselected)
+                    {
+                        $('select#mcpsrgmapper_mapping_version').val(items.lastselected);
+                    }
                 }
             );
 
