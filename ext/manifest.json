@@ -1,6 +1,6 @@
 {
     "name": "MCP SRG Mapper",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "author": "bspkrs, Lunatrius",
     "manifest_version": 2,
     "description": "Applies MCP mappings to SRG named code snippets on github repos and paste services.",
@@ -28,13 +28,15 @@
                 "https://paste.feed-the-beast.com/view/*",
                 "http://paste.feed-the-beast.com/view/*",
                 "http://openeye.openmods.info/crashes/*",
-                "https://paste.kde.org/*/*",
-                "http://paste.kde.org/*/*",
+                "https://openeye.openmods.info/crashes/*",
+                "https://paste.kde.org/*",
+                "http://paste.kde.org/*",
                 "https://pastebin.com/*",
                 "http://pastebin.com/*"
             ],
             "css": [
-                "css/toastr.min.css"
+                "css/toastr.min.css",
+                "css/chosen.min.css"
             ],
             "js": [
                 "js/jquery-2.1.1.min.js",
@@ -43,6 +45,9 @@
                 "src/inject.js"
             ]
         }
+    ],
+    "web_accessible_resources": [
+        "img/*.png"
     ],
     "background": {
         "scripts": [

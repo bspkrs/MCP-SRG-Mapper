@@ -1,5 +1,13 @@
+0.2.2 - 10-Mar-2015
+- fixed anonymous paste.kde.org support
+- applied Chosen to mappings list for search support
+
 0.2.1 - 10-Mar-2015
 - added versions json support (courtesy of Lunatrius)
+- Added gist support. Closes #4 (courtesy of Lunatrius)
+- Added paste.kde.org support. Closes #10 (courtesy of Lunatrius)
+- Added paste.feed-the-beast.com support. Closes #12 (courtesy of Lunatrius)
+- Added openeye.openmods.info support. (courtesy of Lunatrius)
 - spam clicking the remap/reset button will no longer mess up the page
 
 0.1.2 - 15-Dec-2014

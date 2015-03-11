@@ -75,7 +75,6 @@
         var pollCount = 0;
         var pollLimit = 20;
 
-        var versionPattern = /^\d+\.\d+(\.\d+|):(stable_(nodoc_|)\d+|snapshot_(nodoc_|)\d{8})$/;
         var methodPattern = /func_\d+_[A-Za-z]*/;
         var fieldPattern = /field_\d+_[A-Za-z]*/;
         var paramPattern = /p_(i|)\d+_\d+_/;
@@ -330,27 +329,21 @@
 
             $("<select/>")
                 .attr({
-                    'class': 'input-mini',
+                    'class': 'chosen-select',// form-control input-sm',
                     'id': 'mcpsrgmapper_mapping_version'
                 })
                 .bind('change', updateLastSelectedMappings)
                 .appendTo(container);
 
-            //$("select#mcpsrgmapper_mapping_version").chosen();
-
             $('<input/>')
                 .attr({
                     'type': 'button',
                     'id': 'mcpsrgmapper_button',
-                    'class': 'minibutton'
+                    'class': 'minibutton btn btn-default btn-sm'
                 })
                 .val('Remap')
                 .prop('disabled', true)
                 .click(buttonClicked)
-                .appendTo(container);
-
-            var list = $('<datalist></datalist>')
-                .attr('id', 'mcpsrgmapper_mapping_versions')
                 .appendTo(container);
 
             settings.insertControlsContainer(target, container);
@@ -381,11 +374,16 @@
                 }
             );
 
+            var select = $(".chosen-select");
+            select.chosen({});
+            $('.chosen-container').addClass('align-left');
+
             chrome.storage.local.get('lastselected', function (items)
                 {
                     if (items.lastselected)
                     {
-                        $('select#mcpsrgmapper_mapping_version').val(items.lastselected);
+                        select.val(items.lastselected);
+                        select.trigger(new CustomEvent('chosen:updated'));
                     }
                 }
             );
