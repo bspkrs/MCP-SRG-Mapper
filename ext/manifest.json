@@ -32,7 +32,9 @@
                 "https://paste.kde.org/*",
                 "http://paste.kde.org/*",
                 "https://pastebin.com/*",
-                "http://pastebin.com/*"
+                "http://pastebin.com/*",
+                "https://paste.ee/p/*",
+                "http://paste.ee/p/*"
             ],
             "css": [
                 "css/toastr.min.css",

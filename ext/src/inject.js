@@ -210,6 +210,28 @@
                 {
                     return $('#selectable>div>ol>li');
                 }
+            },
+
+            'paste.ee': {
+                getControlsTarget: function ()
+                {
+                    return $('.container>.row>.row>.col-sm-12:has(#download)');
+                },
+
+                insertControlsContainer: function (target, container)
+                {
+                    target.append(container)
+                },
+
+                getControlsContainer: function ()
+                {
+                    return $('<span></span>');
+                },
+
+                getCodeElements: function ()
+                {
+                    return $('#paste-content ol li div');
+                }
             }
         };
 
