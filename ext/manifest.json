@@ -34,7 +34,8 @@
                 "https://pastebin.com/*",
                 "http://pastebin.com/*",
                 "https://paste.ee/p/*",
-                "http://paste.ee/p/*"
+                "http://paste.ee/p/*",
+                "http://pastie.org/*"
             ],
             "css": [
                 "css/toastr.min.css",

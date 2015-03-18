@@ -232,6 +232,28 @@
                 {
                     return $('#paste-content ol li div');
                 }
+            },
+
+            'pastie.org': {
+                getControlsTarget: function ()
+                {
+                    return $('div.headers>div.metadata');
+                },
+
+                insertControlsContainer: function (target, container)
+                {
+                    target.append(container)
+                },
+
+                getControlsContainer: function ()
+                {
+                    return $('<div></div>');
+                },
+
+                getCodeElements: function ()
+                {
+                    return $('div.allcode pre span');
+                }
             }
         };
 
