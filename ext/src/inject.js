@@ -208,7 +208,7 @@
 
                 getCodeElements: function ()
                 {
-                    return $('#selectable>div>ol>li');
+                    return $('#selectable>ol>li');
                 }
             },
 
