@@ -1,3 +1,6 @@
+0.2.3 - 26-Apr-2017
+- merged PR from TomyLobo/fix-gist-pastebin
+
 0.2.2 - 10-Mar-2015
 - fixed anonymous paste.kde.org support
 - applied Chosen to mappings list for search support
