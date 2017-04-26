@@ -115,12 +115,12 @@
 
                 getControlsContainer: function ()
                 {
-                    return $('<li></li>');
+                    return $('<div class="file-navigation-option"></div>');
                 },
 
                 getCodeElements: function ()
                 {
-                    return $('.files .file-data .line-data div.line');
+                    return $('.file table.js-file-line-container td.js-file-line');
                 }
             },
 
@@ -208,7 +208,7 @@
 
                 getCodeElements: function ()
                 {
-                    return $('#selectable>div>ol>li');
+                    return $('#selectable>ol>li');
                 }
             },
 
